@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>PXT Phoenix — Attendance Dashboard</title>
   <link rel="stylesheet" href="style.css"/>
-  <!-- PapaParse (CSV) -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
   <header>
-    <div class="logo"><img src="assets/yhm2-logo.png" alt="YHM2 logo"> <span>PXT Phoenix — Attendance Dashboard</span></div>
+    <div class="logo">
+      <img src="assets/yhm2-logo.png" alt="YHM2">
+      <span>PXT Phoenix — Attendance Dashboard</span>
+    </div>
   </header>
 
   <main>
@@ -19,19 +21,23 @@
       <div class="row controls">
         <div class="col">
           <label class="lbl">Target date</label>
-          <input type="date" id="date" />
+          <input type="date" id="dateInput"/>
         </div>
         <div class="col">
           <label class="lbl">Shift</label>
-          <div class="chipset">
-            <label class="chip"><input type="radio" name="shift" value="Day" checked/> Day</label>
-            <label class="chip"><input type="radio" name="shift" value="Night"/> Night</label>
-          </div>
+          <select id="shiftInput">
+            <option value="Day">Day</option>
+            <option value="Night">Night</option>
+          </select>
         </div>
         <div class="grow"></div>
-        <label class="nh"><input type="checkbox" id="excludeNewHires" checked/> Exclude new hires (&lt; 3 days)</label>
-        <label class="nh"><input type="checkbox" id="auditToggle"/> Audit mode</label>
-        <button id="build" class="btn accent">Build data</button>
+        <label class="nh">
+          <input type="checkbox" id="excludeNewHires" checked/> Exclude new hires (&lt; 3 days)
+        </label>
+        <label class="nh">
+          <input type="checkbox" id="auditToggle"/> Audit mode
+        </label>
+        <button id="processBtn" class="btn accent">Build data</button>
       </div>
     </section>
 
@@ -40,78 +46,78 @@
       <div class="row uploads">
         <div class="upl">
           <div class="lbl">Roster (FCLM)</div>
-          <input type="file" id="f_roster" accept=".csv"/>
+          <input type="file" id="rosterFile" accept=".csv"/>
         </div>
         <div class="upl">
           <div class="lbl">MyTime — CAN Daily Attendance</div>
-          <input type="file" id="f_mytime" accept=".csv"/>
+          <input type="file" id="mytimeFile" accept=".csv"/>
         </div>
         <div class="upl">
           <div class="lbl">MyTime — Daily Hours Summary</div>
-          <input type="file" id="f_hours" accept=".csv"/>
+          <input type="file" id="vacFile" accept=".csv"/>
         </div>
         <div class="upl">
           <div class="lbl">Swap — Upcoming</div>
-          <input type="file" id="f_swap_up" accept=".csv"/>
+          <input type="file" id="swapOutFile" accept=".csv"/>
         </div>
         <div class="upl">
           <div class="lbl">Swap — Past</div>
-          <input type="file" id="f_swap_past" accept=".csv"/>
+          <input type="file" id="swapInFile" accept=".csv"/>
         </div>
         <div class="upl">
           <div class="lbl">PostingAcceptance (VET/VTO)</div>
-          <input type="file" id="f_vetvto" accept=".csv"/>
+          <input type="file" id="vetFile" accept=".csv"/>
         </div>
       </div>
-      <div class="row hint">All files are optional except Roster + MyTime Attendance; others improve accuracy (Vacation/BH, Swaps, VET/VTO).</div>
+      <div class="row hint">
+        Roster + MyTime Attendance are required. Others are optional but improve accuracy.
+        <span id="fileStatus" class="muted" style="margin-left:12px;"></span>
+      </div>
     </section>
 
-    <!-- Metrics -->
+    <!-- Tabs -->
     <section class="card">
-      <div class="row">
-        <div class="title">DD-Metrics (by Dept × AMZN/TEMP)</div>
-        <div class="grow"></div>
-        <button id="reset" class="btn">Reset</button>
+      <div class="tabs">
+        <button id="tabDashboard" class="tab active">Dashboard</button>
+        <button id="tabAudit" class="tab">Audit</button>
       </div>
-      <div id="metricsWrap">
-        <table id="metricsTable" class="table">
+
+      <!-- Top ribbon -->
+      <div class="ribbon">
+        <span class="chip">Day: <b id="chipDay">—</b></span>
+        <span class="chip">Shift: <b id="chipShift">—</b></span>
+        <span class="chip">Corners: <b id="chipCorners">—</b> <i id="chipCornerSource"></i></span>
+        <span class="chip">
+          Vacation: <b id="chipVacationCount">0</b>
+          <a id="chipVacation" class="link-btn" href="#" download="vacation.csv">CSV</a>
+        </span>
+        <span class="chip">
+          BH: <b id="chipBHCount">0</b>
+          <a id="chipBH" class="link-btn" href="#" download="banked_holiday.csv">CSV</a>
+        </span>
+      </div>
+
+      <!-- Panels -->
+      <div id="panelDashboard">
+        <table id="replicaTable" class="table">
           <thead></thead>
           <tbody><tr><td class="muted">Upload files and click Build.</td></tr></tbody>
         </table>
       </div>
-    </section>
 
-    <!-- Absence audit (reason waterfall) -->
-    <section class="card">
-      <div class="row">
-        <div class="title">Absence Audit (reasons)</div>
-        <div class="grow"></div>
-        <button id="dlAbs" class="btn">Download Audit CSV</button>
-      </div>
-      <div id="absWrap">
-        <table id="absTable" class="table">
-          <thead><tr><th>Reason</th><th>Count</th></tr></thead>
-          <tbody><tr><td class="muted">Built with DD-Metrics.</td><td>—</td></tr></tbody>
+      <div id="panelAudit" class="hidden">
+        <div class="row" style="margin:8px 0;">
+          <button id="dlNoShow" class="btn">⬇ No-Show CSV</button>
+          <button id="dlAuditCSV" class="btn">⬇ Full Audit CSV</button>
+          <div class="grow"></div>
+        </div>
+        <table id="auditTable" class="table">
+          <thead></thead>
+          <tbody><tr><td class="muted">Build to see audit.</td></tr></tbody>
         </table>
       </div>
     </section>
   </main>
-
-  <!-- AUDIT MODAL -->
-  <div id="auditModal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-head">
-        <div>
-          <div id="auditTitle" class="card-title">Audit</div>
-          <div id="auditSub" class="muted small"></div>
-        </div>
-        <div class="grow"></div>
-        <button id="auditCsvBtn" class="btn">⬇ CSV</button>
-        <button id="auditClose" class="btn">Close</button>
-      </div>
-      <div id="auditBody" class="modal-body"></div>
-    </div>
-  </div>
 
   <script src="app.js"></script>
 </body>
