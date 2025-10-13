@@ -1,94 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-  <!-- Updated title + favicon -->
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>PXT Phoenix — Attendance Dashboard</title>
-  <link rel="icon" type="image/png" href="assets/yhm2-logo.png"/>
-
   <link rel="stylesheet" href="style.css"/>
+  <!-- PapaParse (CSV) -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script defer src="app.js"></script>
 </head>
 <body>
   <header>
-    <!-- Logo + Name (keeps your original header structure) -->
-    <div class="logo" style="display:flex;align-items:center;gap:10px;">
-      <img src="assets/yhm2-logo.png" alt="YHM2 logo" style="width:36px;height:36px;object-fit:contain"/>
-      <span>PXT Phoenix</span>
-    </div>
-
-    <nav class="tabs">
-      <button id="tabDashboard" class="tab active">Dashboard</button>
-      <button id="tabAudit" class="tab">Audit</button>
-    </nav>
-
-    <div class="actions">
-      <button id="processBtn" class="btn">Process Files</button>
-      <span id="fileStatus" class="chip chip-muted">Ready</span>
-    </div>
+    <div class="logo">PXT Phoenix — Attendance Dashboard</div>
   </header>
 
   <main>
+    <!-- Controls -->
     <section class="card">
       <div class="row controls">
-        <div>
-          <label for="dateInput">Date</label>
-          <input type="date" id="dateInput">
+        <div class="col">
+          <label class="lbl">Target date</label>
+          <input type="date" id="date" />
         </div>
-        <div>
-          <label for="shiftInput">Shift</label>
-          <select id="shiftInput">
-            <option value="Day">Day</option>
-            <option value="Night">Night</option>
-          </select>
+        <div class="col">
+          <label class="lbl">Shift</label>
+          <div class="chipset">
+            <label class="chip"><input type="radio" name="shift" value="Day" checked/> Day</label>
+            <label class="chip"><input type="radio" name="shift" value="Night"/> Night</label>
+          </div>
         </div>
         <div class="grow"></div>
-        <label class="nh"><input type="checkbox" id="excludeNewHires" checked> Exclude new hires (&lt; 3 days)</label>
+        <label class="nh"><input type="checkbox" id="excludeNewHires" checked/> Exclude new hires (&lt; 3 days)</label>
+        <label class="nh"><input type="checkbox" id="auditToggle"/> Audit mode</label>
+        <button id="build" class="btn accent">Build data</button>
       </div>
+    </section>
 
+    <!-- Uploads -->
+    <section class="card">
       <div class="row uploads">
-        <label class="file">Roster <input type="file" id="rosterFile" accept=".csv" /></label>
-        <label class="file">MyTime (CAN Daily Attendance) <input type="file" id="mytimeFile" accept=".csv" /></label>
-        <label class="file">CAN Daily Hours Summary (Vacation/BH) <input type="file" id="vacFile" accept=".csv" /></label>
-        <label class="file">Shift Swap — Out <input type="file" id="swapOutFile" accept=".csv" /></label>
-        <label class="file">Shift Swap — In <input type="file" id="swapInFile" accept=".csv" /></label>
-        <label class="file">VET / VTO (PostingAcceptance) <input type="file" id="vetFile" accept=".csv" /></label>
+        <div class="upl">
+          <div class="lbl">Roster (FCLM)</div>
+          <input type="file" id="f_roster" accept=".csv"/>
+        </div>
+        <div class="upl">
+          <div class="lbl">MyTime — CAN Daily Attendance</div>
+          <input type="file" id="f_mytime" accept=".csv"/>
+        </div>
+        <div class="upl">
+          <div class="lbl">MyTime — Daily Hours Summary</div>
+          <input type="file" id="f_hours" accept=".csv"/>
+        </div>
+        <div class="upl">
+          <div class="lbl">Swap — Upcoming</div>
+          <input type="file" id="f_swap_up" accept=".csv"/>
+        </div>
+        <div class="upl">
+          <div class="lbl">Swap — Past</div>
+          <input type="file" id="f_swap_past" accept=".csv"/>
+        </div>
+        <div class="upl">
+          <div class="lbl">PostingAcceptance (VET/VTO)</div>
+          <input type="file" id="f_vetvto" accept=".csv"/>
+        </div>
       </div>
+      <div class="row hint">All files are optional except Roster + MyTime Attendance; others improve accuracy (Vacation/BH, Swaps, VET/VTO).</div>
     </section>
 
-    <!-- DASHBOARD -->
-    <section id="panelDashboard" class="card">
-      <div class="row ribbon">
-        <div class="chip">Day: <b id="chipDay">—</b></div>
-        <div class="chip">Shift: <b id="chipShift">—</b></div>
-        <div class="chip">Corners: <b id="chipCorners">—</b> <span id="chipCornerSource" class="chip-note"></span></div>
-
-        <a id="chipVacation" class="chip chip-link" href="#" download="vacation_excluded.csv" title="Download vacation excluded list (CSV)">Vacation excluded: <b id="chipVacationCount">0</b></a>
-        <a id="chipBH" class="chip chip-link" href="#" download="banked_holiday_excluded.csv" title="Download banked holiday excluded list (CSV)">Banked Holiday excluded: <b id="chipBHCount">0</b></a>
-      </div>
-
-      <h2 class="card-title">Dept × AMZN/TEMP (Inbound, DA, ICQA, CRETs)</h2>
-      <table id="replicaTable" class="table"></table>
-
-      <div class="row mt">
-        <button id="dlNoShow" class="btn btn-green">Download No-Show CSV</button>
-        <span class="hint">(No-Show = scheduled after Vacation/BH/VTO/Swap-out, but not on-prem)</span>
-      </div>
-    </section>
-
-    <!-- AUDIT -->
-    <section id="panelAudit" class="card hidden">
+    <!-- Metrics -->
+    <section class="card">
       <div class="row">
-        <h2 class="card-title">Absence Audit</h2>
+        <div class="title">DD-Metrics (by Dept × AMZN/TEMP)</div>
         <div class="grow"></div>
-        <button id="dlAuditCSV" class="btn">Download Audit CSV</button>
+        <button id="reset" class="btn">Reset</button>
       </div>
-      <p class="hint">Breakdown of scheduled associates who did not show, grouped by reason (mutually exclusive: Vacation &gt; Banked Holiday &gt; VTO &gt; Swap-Out &gt; VET-not-shown &gt; No-Show).</p>
-      <table id="auditTable" class="table"></table>
+      <div id="metricsWrap">
+        <table id="metricsTable" class="table">
+          <thead></thead>
+          <tbody><tr><td class="muted">Upload files and click Build.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Absence audit (reason waterfall) -->
+    <section class="card">
+      <div class="row">
+        <div class="title">Absence Audit (reasons)</div>
+        <div class="grow"></div>
+        <button id="dlAbs" class="btn">Download Audit CSV</button>
+      </div>
+      <div id="absWrap">
+        <table id="absTable" class="table">
+          <thead><tr><th>Reason</th><th>Count</th></tr></thead>
+          <tbody><tr><td class="muted">Built with DD-Metrics.</td><td>—</td></tr></tbody>
+        </table>
+      </div>
     </section>
   </main>
+
+  <!-- AUDIT MODAL -->
+  <div id="auditModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-head">
+        <div>
+          <div id="auditTitle" class="card-title">Audit</div>
+          <div id="auditSub" class="muted small"></div>
+        </div>
+        <div class="grow"></div>
+        <button id="auditCsvBtn" class="btn">⬇ CSV</button>
+        <button id="auditClose" class="btn">Close</button>
+      </div>
+      <div id="auditBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
