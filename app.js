@@ -84,21 +84,42 @@ function ymd(d) {
   return d.split("T")[0] || d;
 }
 
+// ================= SMART CSV PARSER =================
+// Detects header row automatically and returns clean array of objects
 function parseCSV(file) {
   return new Promise((res, rej) => {
-    if (!file) {
-      res([]); 
-      return;
-    }
+    if (!file) { res([]); return; }
     Papa.parse(file, {
-      header: true,
       skipEmptyLines: true,
-      complete: r => res(r.data || []),
+      complete: result => {
+        const rows = result.data || [];
+        if (!rows.length) { res([]); return; }
+
+        // find the row index that looks like headers
+        let headerIdx = -1;
+        const hints = ["employee","person","badge","department","on","hours","status","opportunity"];
+        for (let i = 0; i < Math.min(rows.length, 15); i++) {
+          const row = rows[i].map(x => String(x||"").toLowerCase());
+          if (row.some(c => hints.some(h => c.includes(h)))) { headerIdx = i; break; }
+        }
+
+        if (headerIdx === -1) headerIdx = 0;
+        const headers = rows[headerIdx].map(h => String(h||"").trim());
+        const data = [];
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+          const r = rows[i]; if (!r || !r.length) continue;
+          const obj = {};
+          headers.forEach((h,j) => obj[h] = r[j]);
+          // stop if blank trailing rows
+          if (Object.values(obj).every(v => v==null || v==="")) continue;
+          data.push(obj);
+        }
+        res(data);
+      },
       error: rej
     });
   });
 }
-
 // ID normalization: strip non-digits (use numeric part if available), otherwise use trimmed string in uppercase
 function normId(x) {
   if (x == null) return "";
