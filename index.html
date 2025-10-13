@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Updated title + favicon -->
+  <title>PXT Phoenix — Attendance Dashboard</title>
+  <link rel="icon" type="image/png" href="assets/yhm2-logo.png"/>
+
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header>
+    <!-- Logo + Name (keeps your original header structure) -->
+    <div class="logo" style="display:flex;align-items:center;gap:10px;">
+      <img src="assets/yhm2-logo.png" alt="YHM2 logo" style="width:36px;height:36px;object-fit:contain"/>
+      <span>PXT Phoenix</span>
+    </div>
+
+    <nav class="tabs">
+      <button id="tabDashboard" class="tab active">Dashboard</button>
+      <button id="tabAudit" class="tab">Audit</button>
+    </nav>
+
+    <div class="actions">
+      <button id="processBtn" class="btn">Process Files</button>
+      <span id="fileStatus" class="chip chip-muted">Ready</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="row controls">
+        <div>
+          <label for="dateInput">Date</label>
+          <input type="date" id="dateInput">
+        </div>
+        <div>
+          <label for="shiftInput">Shift</label>
+          <select id="shiftInput">
+            <option value="Day">Day</option>
+            <option value="Night">Night</option>
+          </select>
+        </div>
+        <div class="grow"></div>
+        <label class="nh"><input type="checkbox" id="excludeNewHires" checked> Exclude new hires (&lt; 3 days)</label>
+      </div>
+
+      <div class="row uploads">
+        <label class="file">Roster <input type="file" id="rosterFile" accept=".csv" /></label>
+        <label class="file">MyTime (CAN Daily Attendance) <input type="file" id="mytimeFile" accept=".csv" /></label>
+        <label class="file">CAN Daily Hours Summary (Vacation/BH) <input type="file" id="vacFile" accept=".csv" /></label>
+        <label class="file">Shift Swap — Out <input type="file" id="swapOutFile" accept=".csv" /></label>
+        <label class="file">Shift Swap — In <input type="file" id="swapInFile" accept=".csv" /></label>
+        <label class="file">VET / VTO (PostingAcceptance) <input type="file" id="vetFile" accept=".csv" /></label>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="panelDashboard" class="card">
+      <div class="row ribbon">
+        <div class="chip">Day: <b id="chipDay">—</b></div>
+        <div class="chip">Shift: <b id="chipShift">—</b></div>
+        <div class="chip">Corners: <b id="chipCorners">—</b> <span id="chipCornerSource" class="chip-note"></span></div>
+
+        <a id="chipVacation" class="chip chip-link" href="#" download="vacation_excluded.csv" title="Download vacation excluded list (CSV)">Vacation excluded: <b id="chipVacationCount">0</b></a>
+        <a id="chipBH" class="chip chip-link" href="#" download="banked_holiday_excluded.csv" title="Download banked holiday excluded list (CSV)">Banked Holiday excluded: <b id="chipBHCount">0</b></a>
+      </div>
+
+      <h2 class="card-title">Dept × AMZN/TEMP (Inbound, DA, ICQA, CRETs)</h2>
+      <table id="replicaTable" class="table"></table>
+
+      <div class="row mt">
+        <button id="dlNoShow" class="btn btn-green">Download No-Show CSV</button>
+        <span class="hint">(No-Show = scheduled after Vacation/BH/VTO/Swap-out, but not on-prem)</span>
+      </div>
+    </section>
+
+    <!-- AUDIT -->
+    <section id="panelAudit" class="card hidden">
+      <div class="row">
+        <h2 class="card-title">Absence Audit</h2>
+        <div class="grow"></div>
+        <button id="dlAuditCSV" class="btn">Download Audit CSV</button>
+      </div>
+      <p class="hint">Breakdown of scheduled associates who did not show, grouped by reason (mutually exclusive: Vacation &gt; Banked Holiday &gt; VTO &gt; Swap-Out &gt; VET-not-shown &gt; No-Show).</p>
+      <table id="auditTable" class="table"></table>
+    </section>
+  </main>
+</body>
+</html>
