@@ -86,7 +86,7 @@
       <div class="ribbon">
         <span class="chip">Day: <b id="chipDay">—</b></span>
         <span class="chip">Shift: <b id="chipShift">—</b></span>
-        <span class="chip">Corners: <b id="chipCorners">—</b> <i id="chipCornerSource"></i></span>
+        <span class="chip">Corners: <b id="chipCorners">—</b> <i id="chipCornerSource" class="muted small"></i></span>
         <span class="chip">
           Vacation: <b id="chipVacationCount">0</b>
           <a id="chipVacation" class="link-btn" href="#" download="vacation.csv">CSV</a>
@@ -115,6 +115,8 @@
           <thead></thead>
           <tbody><tr><td class="muted">Build to see audit.</td></tr></tbody>
         </table>
+        <p class="hint">Breakdown of scheduled associates who did not show, grouped by reason (mutually exclusive: Vacation &gt; Banked Holiday &gt; VTO &gt; Swap-Out &gt; VET-not-shown &gt; No-Show).</p>
+        <p class="hint">No-Show indicates a scheduled associate with no approved absence who was not present on site.</p>
       </div>
     </section>
   </main>
