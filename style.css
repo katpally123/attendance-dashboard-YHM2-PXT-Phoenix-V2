@@ -59,15 +59,17 @@ main { max-width: 1200px; margin: 24px auto; padding: 0 16px; display: grid; gap
 
 .tabs { display:flex; gap:8px; margin-bottom:10px; }
 .tab {
-  background:#0d1a36; color:var(--text); border:1px solid var(--line);
-  padding:8px 12px; border-radius:10px; cursor:pointer;
+  background: #0d1a36; color: var(--text); border: 1px solid var(--line);
+  padding: 8px 12px; border-radius: 10px; cursor: pointer;
 }
-.tab.active { outline:1px solid #2a72ff44; }
+.tab.active { outline: 1px solid #2a72ff44; }
 
-.ribbon { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.ribbon { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .chip {
-  background: var(--chip); border:1px solid var(--line); border-radius:999px;
-  padding:6px 10px; display:flex; align-items:center; gap:6px;
+  background: var(--chip); border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 10px; display: flex; align-items: center; gap: 6px;
 }
 .link-btn { color: var(--link); text-decoration: none; }
 .link-btn:hover { text-decoration: underline; }
+
+.hidden { display: none; }
