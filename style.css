@@ -17,40 +17,20 @@ body {
   font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial;
 }
 header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
-  background: #0a1122;
-  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 20px; background: #0a1122; border-bottom: 1px solid var(--line);
 }
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-}
-main {
-  max-width: 1200px;
-  margin: 24px auto;
-  padding: 0 16px;
-  display: grid;
-  gap: 16px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 16px;
-}
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 0.2px; }
+.logo img { width: 36px; height: 36px; object-fit: contain; }
+
+main { max-width: 1200px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
 .row { display: flex; align-items: center; gap: 12px; }
 .col { display: flex; flex-direction: column; gap: 6px; }
 .grow { flex: 1; }
 .controls .lbl { font-size: 12px; color: var(--muted); }
 .lbl { font-size: 12px; color: var(--muted); }
 .hint { color: var(--muted); font-size: 12px; }
-.title { font-weight: 700; }
 .nh { color: var(--muted); font-size: 13px; }
 
 .btn {
@@ -65,100 +45,29 @@ main {
 .btn.accent { background: #12341d; border-color: #1a5d2f; }
 
 .uploads { flex-wrap: wrap; }
-.upl {
-  min-width: 260px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.upl { min-width: 260px; display: flex; flex-direction: column; gap: 6px; }
 
-.chipset { display: flex; gap: 8px; }
-.chip {
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #0d1a36;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-.chip input { accent-color: var(--accent); }
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th, .table td {
   border-bottom: 1px solid #16203a;
-  padding: 8px 10px;
-  text-align: left;
-  vertical-align: top;
+  padding: 8px 10px; text-align: left; vertical-align: top;
 }
-.table thead th {
-  border-bottom: 1px solid var(--line);
-  font-weight: 700;
-}
-
-.k { white-space: nowrap; }
+.table thead th { border-bottom: 1px solid var(--line); font-weight: 700; }
 
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
 
-.audit-actions { display: none; margin-left: 8px; }
-.audit-actions .abtn {
-  background: none;
-  border: none;
-  color: var(--link);
-  padding: 0 6px;
-  cursor: pointer;
-  font-size: 12px;
+.tabs { display:flex; gap:8px; margin-bottom:10px; }
+.tab {
+  background:#0d1a36; color:var(--text); border:1px solid var(--line);
+  padding:8px 12px; border-radius:10px; cursor:pointer;
 }
-.audit-actions .abtn:hover { text-decoration: underline; }
-body.audit-mode .audit-actions { display: inline-flex; }
+.tab.active { outline:1px solid #2a72ff44; }
 
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
+.ribbon { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.chip {
+  background: var(--chip); border:1px solid var(--line); border-radius:999px;
+  padding:6px 10px; display:flex; align-items:center; gap:6px;
 }
-.hidden { display: none; }
-.modal-content {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  width: min(1100px, 95vw);
-  max-height: 85vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.modal-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--line);
-}
-.modal-body { padding: 12px; overflow: auto; }
-.audit-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.audit-table th, .audit-table td {
-  border-bottom: 1px solid #16203a;
-  padding: 6px 8px;
-  text-align: left;
-}
-.audit-table thead th {
-  border-bottom: 1px solid var(--line);
-}
-
-/* Logo image styling */
-.logo img { width: 36px; height: 36px; object-fit: contain; }
+.link-btn { color: var(--link); text-decoration: none; }
+.link-btn:hover { text-decoration: underline; }
