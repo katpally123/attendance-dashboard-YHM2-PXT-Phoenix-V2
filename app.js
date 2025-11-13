@@ -56,7 +56,7 @@ const chipVacationCount = document.getElementById("chipVacationCount");
 const chipBHCount = document.getElementById("chipBHCount");
 
 /* tables & downloads */
-const replicaTable = document.getElementById("replicaTable");
+const replicaContainer = document.getElementById("replicaContainer");
 const auditTable   = document.getElementById("auditTable");
 const btnNoShow    = document.getElementById("dlNoShow");
 const btnAuditCSV  = document.getElementById("dlAuditCSV");
@@ -329,6 +329,13 @@ async function processAll() {
       }
     };
     const sumTotals = ACC => depts.reduce((s, d) => s + ACC[d].TOTAL, 0);
+    const sumTotalsAcross = ACC => {
+      let total = 0;
+      for (const d of depts) {
+        total += (ACC[d].AMZN || 0) + (ACC[d].TEMP || 0);
+      }
+      return total;
+    };
 
     // ====== Hours Summary: Vacation (>=9.5h) & Banked Holiday (>=11.9h) ======
     const vacSet = new Set(), bhSet = new Set();
@@ -483,29 +490,111 @@ async function processAll() {
     const row_VETPresent        = mkRow();
     vetPresentRows.forEach(x => pushCount(row_VETPresent, x));
 
-    const header = `
-      <thead>
-        <tr>
-          <th>Attendance Details</th>
-          ${depts.map(d => `<th>${d} AMZN</th><th>${d} TEMP</th>`).join("")}
-          <th>Total</th>
-        </tr>
-      </thead>`;
-    const rowHTML = (label, ACC) => {
-      const cells = depts.map(d => `<td>${ACC[d].AMZN}</td><td>${ACC[d].TEMP}</td>`).join("");
-      const total = sumTotals(ACC);
-      return `<tr><td>${label}</td>${cells}<td>${total}</td></tr>`;
-    };
-    replicaTable.innerHTML = header + "<tbody>"
-      + rowHTML("Regular HC (Cohort Expected)", row_RegularExpected)
-      + rowHTML("Regular HC Present (Excluding Swaps)", row_RegularPresentExS)
-      + rowHTML("Shift Swap Out", row_SwapOut)
-      + rowHTML("Shift Swap Expected", row_SwapInExpected)
-      + rowHTML("Shift Swap Present", row_SwapInPresent)
-      + rowHTML("VTO", row_VTO)
-      + rowHTML("VET Expected", row_VETExpected)
-      + rowHTML("VET Present", row_VETPresent)
-      + "</tbody>";
+    // ---------- Build shift code breakdown ----------
+    const shiftCodeCounts = {};
+    for (const x of cohortExpected) {
+      const code = x.corner.slice(0, 2).toUpperCase();
+      if (code) {
+        shiftCodeCounts[code] = (shiftCodeCounts[code] || 0) + 1;
+      }
+    }
+    const shiftCodes = Object.keys(shiftCodeCounts).sort();
+    const totalShiftCount = shiftCodes.reduce((sum, code) => sum + shiftCodeCounts[code], 0);
+
+    const shiftBreakdownHTML = `
+      <h3>Shift Code Breakdown</h3>
+      <div class="breakdown-table">
+        ${shiftCodes.map(code => `
+          <div class="breakdown-row">
+            <span class="label">${code}</span>
+            <span class="count">${shiftCodeCounts[code]}</span>
+          </div>
+        `).join('')}
+        <div class="breakdown-row">
+          <span class="label">Total</span>
+          <span class="count">${totalShiftCount}</span>
+        </div>
+      </div>
+    `;
+
+    // ---------- Build roster overview ----------
+    const uploadedLogins = 0; // Placeholder - would need to track uploaded login count
+    
+    const rosterOverviewHTML = `
+      <h3>Roster Overview</h3>
+      <div class="overview-section">
+        <h4>Roster Adjustments</h4>
+        <div class="tiles-grid">
+          <div class="tile">
+            <div class="tile-label">Regular HC</div>
+            <div class="tile-value">${sumTotalsAcross(row_RegularExpected)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">Swap In</div>
+            <div class="tile-value">${sumTotalsAcross(row_SwapInExpected)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">Swap Out</div>
+            <div class="tile-value">${sumTotalsAcross(row_SwapOut)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">VET</div>
+            <div class="tile-value">${sumTotalsAcross(row_VETExpected)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">VTO</div>
+            <div class="tile-value">${sumTotalsAcross(row_VTO)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">LS_IN</div>
+            <div class="tile-value">0</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">LS_OUT</div>
+            <div class="tile-value">0</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">Adjusted HC</div>
+            <div class="tile-value">${sumTotalsAcross(row_RegularPresentExS)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">Uploaded Logins</div>
+            <div class="tile-value">${uploadedLogins}</div>
+          </div>
+        </div>
+      </div>
+      <div class="overview-section">
+        <h4>Expected Headcount</h4>
+        <div class="tiles-grid">
+          <div class="tile">
+            <div class="tile-label">YHM2 Expected</div>
+            <div class="tile-value">${sumTotalsAcross(row_RegularExpected)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">YDD2/YDD4 Expected</div>
+            <div class="tile-value">0</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">Total</div>
+            <div class="tile-value">${sumTotalsAcross(row_RegularExpected)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // ---------- Update dashboard with two-column layout ----------
+    replicaContainer.innerHTML = `
+      <div class="panel-left">
+        <div class="breakdown-card">
+          ${shiftBreakdownHTML}
+        </div>
+      </div>
+      <div class="panel-right">
+        <div class="overview-card">
+          ${rosterOverviewHTML}
+        </div>
+      </div>
+    `;
 
     // ---------- Ribbon chips (current shift slice only) ----------
     const vacRows = [...vacSet].map(id => byId.get(id)).filter(Boolean)
